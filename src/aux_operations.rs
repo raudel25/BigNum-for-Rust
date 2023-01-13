@@ -141,7 +141,7 @@ fn add_zeros_left_value(number_value: &Vec<u64>, cant: usize) -> Vec<u64> {
     l
 }
 
-fn add_zeros_right_value(number_value: &Vec<u64>, cant: usize) -> Vec<u64> {
+pub fn add_zeros_right_value(number_value: &Vec<u64>, cant: usize) -> Vec<u64> {
     let l = vec![0; cant];
 
     [l, number_value.clone()].concat()

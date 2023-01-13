@@ -214,6 +214,28 @@ impl Sub for Number {
     }
 }
 
+impl Mul for Number {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let x = &self;
+        let y = &rhs;
+
+        let positive = x.positive == y.positive;
+
+        let tuple = equal_zeros_left_value(&x.number_value, &y.number_value);
+
+        let result = karatsuba_algorithm(&tuple.0, &tuple.1, self.base10);
+        Number::new_priv(
+            &result[self.precision..].iter().cloned().collect(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            positive,
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -247,7 +269,18 @@ mod tests {
         let d = big.num(&"0".to_string(), false);
 
         let c = a + b;
-        // let q = -d == c;
         assert!(-d == c);
+    }
+
+    #[test]
+    fn mul() {
+        let big = BigNum::new(4, 1);
+
+        let a = big.num(&"2".to_string(), false);
+        let b = big.num(&"234".to_string(), true);
+        let d = big.num(&"468".to_string(), false);
+
+        let c = a * b;
+        assert!(d == c);
     }
 }
