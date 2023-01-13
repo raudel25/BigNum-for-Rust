@@ -8,6 +8,7 @@ mod basic_operations;
 pub struct BigNum {
     pub precision: usize,
     pub ind_base10: usize,
+    pub base10: u64,
 }
 
 impl BigNum {
@@ -15,11 +16,18 @@ impl BigNum {
         BigNum {
             precision,
             ind_base10,
+            base10: 10_u64.pow(ind_base10.try_into().unwrap()),
         }
     }
 
     pub fn num(&self, number: &String, positive: bool) -> Number {
-        Number::new(number, self.precision, self.ind_base10, positive)
+        Number::new(
+            number,
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            positive,
+        )
     }
 }
 
@@ -27,11 +35,18 @@ pub struct Number {
     number_value: Vec<u64>,
     pub precision: usize,
     pub ind_base10: usize,
+    pub base10: u64,
     pub positive: bool,
 }
 
 impl Number {
-    pub fn new(number: &String, precision: usize, ind_base10: usize, positive: bool) -> Number {
+    fn new(
+        number: &String,
+        precision: usize,
+        ind_base10: usize,
+        base10: u64,
+        positive: bool,
+    ) -> Number {
         let number = int_and_decimal(number);
         let number = (
             eliminate_zeros_left(&number.0),
@@ -52,13 +67,20 @@ impl Number {
         Number {
             number_value,
             precision,
+            base10,
             ind_base10,
             positive,
         }
     }
 
     pub fn abs(&self) -> Number {
-        Number::new_priv(&self.number_value, self.precision, self.ind_base10, true)
+        Number::new_priv(
+            &self.number_value,
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            true,
+        )
     }
 
     fn compare_to(&self, n: &Number) -> i32 {
@@ -75,7 +97,13 @@ impl Number {
         return -1;
     }
 
-    fn new_priv(number: &Vec<u64>, precision: usize, ind_base10: usize, positive: bool) -> Number {
+    fn new_priv(
+        number: &Vec<u64>,
+        precision: usize,
+        ind_base10: usize,
+        base10: u64,
+        positive: bool,
+    ) -> Number {
         let number_value: Vec<u64> = eliminate_zeros_left_value(number, precision);
 
         let positive = if check_zero(&number_value) {
@@ -87,6 +115,7 @@ impl Number {
         Number {
             number_value,
             precision,
+            base10,
             ind_base10,
             positive,
         }
