@@ -1,6 +1,7 @@
 use aux_operations::*;
 use basic_operations::*;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 mod aux_operations;
 mod basic_operations;
@@ -142,6 +143,77 @@ impl PartialEq for Number {
     }
 }
 
+impl Add for Number {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let x = &self;
+        let y = &rhs;
+        let lx = &x.number_value;
+        let ly = &y.number_value;
+
+        if x.positive == y.positive {
+            return Number::new_priv(
+                &sum_number(lx, ly, self.base10),
+                self.precision,
+                self.ind_base10,
+                self.base10,
+                x.positive,
+            );
+        };
+
+        let compare = x.abs().compare_to(&y.abs());
+        if compare == 0 {
+            return Number::new_priv(
+                &vec![0; self.precision + 1],
+                self.precision,
+                self.ind_base10,
+                self.base10,
+                x.positive,
+            );
+        }
+        if compare == 1 {
+            return Number::new_priv(
+                &sub_number(lx, ly, self.base10),
+                self.precision,
+                self.ind_base10,
+                self.base10,
+                x.positive,
+            );
+        }
+
+        return Number::new_priv(
+            &sub_number(ly, lx, self.base10),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            y.positive,
+        );
+    }
+}
+
+impl Neg for Number {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Number::new_priv(
+            &self.number_value,
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            !self.positive,
+        )
+    }
+}
+
+impl Sub for Number {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self + (-rhs)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -164,5 +236,18 @@ mod tests {
 
         assert!(b > a1);
         // assert!(a1 < a);
+    }
+
+    #[test]
+    fn sum_sub() {
+        let big = BigNum::new(4, 1);
+
+        let a = big.num(&"100".to_string(), false);
+        let b = big.num(&"100".to_string(), true);
+        let d = big.num(&"0".to_string(), false);
+
+        let c = a + b;
+        // let q = -d == c;
+        assert!(-d == c);
     }
 }
