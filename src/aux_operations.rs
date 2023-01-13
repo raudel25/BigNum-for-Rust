@@ -131,21 +131,25 @@ pub fn eliminate_zeros_left_value(number_value: &Vec<u64>, precision: usize) -> 
     return l;
 }
 
-// def add_zeros_left_value(number_value: list, cant: int) -> list:
-//     l: list = [x for x in number_value]
+fn add_zeros_left_value(number_value: &Vec<u64>, cant: usize) -> Vec<u64> {
+    let mut l = number_value.clone();
 
-//     for _ in range(cant):
-//         l.append(0)
+    for _ in 0..cant {
+        l.push(0)
+    }
 
-//     return l
+    l
+}
 
-// def add_zeros_right_value(number_value: list, cant: int) -> list:
-//     l: list = [0 for _ in range(cant)]
+fn add_zeros_right_value(number_value: &Vec<u64>, cant: usize) -> Vec<u64> {
+    let l = vec![0; cant];
 
-//     return l + number_value
+    [l, number_value.clone()].concat()
+}
 
-// def equal_zeros_left_value(x: list, y: list) -> tuple:
-//     lx: list = add_zeros_left_value(x, max(len(x), len(y)) - len(x))
-//     ly: list = add_zeros_left_value(y, max(len(x), len(y)) - len(y))
+pub fn equal_zeros_left_value(x: &Vec<u64>, y: &Vec<u64>) -> (Vec<u64>, Vec<u64>) {
+    let lx = add_zeros_left_value(x, x.len().max(y.len()) - x.len());
+    let ly = add_zeros_left_value(y, x.len().max(y.len()) - y.len());
 
-//     return lx, ly
+    (lx, ly)
+}
