@@ -117,14 +117,17 @@ pub fn division_algorithm_d(
     precision: usize,
     base10: u64,
 ) -> Result<Vec<u64>, Box<dyn std::error::Error>> {
-    let tuple = normalize(x, y, base10)?;
+    let tuple = super::aux_operations::equal_zeros_left_value(&x, &y);
+    let x = tuple.0;
+    let y = tuple.1;
+
+    let tuple = normalize(&x, &y, base10)?;
     let x = tuple.0;
     let y = tuple.1;
 
     let mut result = Vec::new();
-    let mut rest: Vec<u64> = (&x[x.len() - y.len() + 1..]).iter().cloned().collect();
-
-    for t in (0..(x.len() - y.len() + 1)).rev() {
+    let mut rest = x[x.len() + 1 - y.len()..].iter().cloned().collect();
+    for t in (0..(x.len() + 1 - y.len())).rev() {
         let tuple = division_immediate(&[vec![x[t]], rest].concat(), &y, base10, precision);
         result.push(tuple.0);
         rest = tuple.1;
