@@ -1,5 +1,6 @@
-use super::aux_operations::add_zeros_right_value;
-use super::aux_operations::equal_zeros_left_value;
+use super::aux_operations::{
+    add_zeros_right_value, eliminate_zeros_left_value, equal_zeros_left_value,
+};
 
 pub fn sum_number(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> {
     let tuple = equal_zeros_left_value(x, y);
@@ -108,4 +109,97 @@ pub fn karatsuba_algorithm(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> 
     let z0 = karatsuba_algorithm(&x0, &y0, base10);
 
     return sum_number(&z2, &sum_number(&z1, &z0, base10), base10);
+}
+
+pub fn division_algorithm_d(x: &Vec<u64>, y: &Vec<u64>, precision: usize, base10: u64) -> Vec<u64> {
+    let tuple = normalize(x, y, base10);
+    let x = tuple.0;
+    let y = tuple.1;
+
+    let mut result = Vec::new();
+    let mut rest: Vec<u64> = (&x[x.len() - y.len() + 1..]).iter().cloned().collect();
+
+    for t in (0..(x.len() - y.len() + 1)).rev() {
+        let tuple = division_immediate(&[vec![x[t]], rest].concat(), &y, base10, precision);
+        result.push(tuple.0);
+        rest = tuple.1;
+    }
+
+    for _ in 0..precision {
+        let tuple = division_immediate(&[vec![0], rest].concat(), &y, base10, precision);
+        result.push(tuple.0);
+        rest = tuple.1;
+    }
+
+    result.reverse();
+    result
+}
+
+fn normalize(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> (Vec<u64>, Vec<u64>) {
+    if y[y.len() - 1] < base10 / 2 {
+        let y_aux = eliminate_zeros_left_value(&y, 0);
+        if y_aux.len() == 1 && y_aux[0] == 0 {
+            panic!("sldkvn");
+        }
+        let y = add_zeros_right_value(&y_aux, y.len() - y_aux.len());
+        let x = add_zeros_right_value(x, y.len() - y_aux.len());
+
+        let mut mult = 1;
+        let mut aux = y[y.len() - 1] / (base10 / 10);
+
+        let logy = y[y.len() - 1].to_string().len();
+
+        if aux == 0 {
+            mult = base10 / (10_u64.pow(logy.try_into().unwrap())) / 10;
+            aux = y[y.len() - 1] * mult / (base10 / 10);
+        }
+
+        mult *= match aux {
+            1 => 5,
+            2 => 3,
+            3 => 2,
+            4 => 2,
+            _ => 1,
+        };
+
+        return (
+            simple_multiplication(&x, mult, base10),
+            simple_multiplication(&y, mult, base10),
+        );
+    }
+
+    (x.clone(), y.clone())
+}
+
+fn division_immediate(
+    div: &Vec<u64>,
+    divisor: &Vec<u64>,
+    base10: u64,
+    precision: usize,
+) -> (u64, Vec<u64>) {
+    if div.len() < divisor.len() {
+        return (0, div.clone());
+    }
+
+    let mut result = if div.len() == divisor.len() {
+        div[div.len() - 1] / divisor[divisor.len() - 1]
+    } else {
+        (div[div.len() - 1] * base10 + div[div.len() - 2]) / divisor[divisor.len() - 1]
+    };
+
+    let mut aux;
+    loop {
+        aux = simple_multiplication(divisor, result, base10);
+
+        if compare_list(div, &aux) != -1 {
+            break;
+        }
+
+        result -= 1;
+    }
+
+    (
+        result,
+        eliminate_zeros_left_value(&sub_number(div, &aux, base10), precision),
+    )
 }

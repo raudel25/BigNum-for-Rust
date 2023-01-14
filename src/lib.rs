@@ -236,6 +236,34 @@ impl Mul for Number {
     }
 }
 
+impl Div for Number {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        let x = &self;
+        let y = &rhs;
+        let positive = x.positive == y.positive;
+
+        // if y == self.real0():
+        //     raise Exception("Operacion Invalida (division por 0)")
+        // if y.abs == self.real1():
+        //     return Numbers(x.__number_value, positive, self.__precision, self.__ind_base10, self.__base10)
+
+        Number::new_priv(
+            &division_algorithm_d(
+                &x.number_value,
+                &y.number_value,
+                self.precision,
+                self.base10,
+            ),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            positive,
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -282,5 +310,17 @@ mod tests {
 
         let c = a * b;
         assert!(d == c);
+    }
+
+    #[test]
+    fn div() {
+        let big = BigNum::new(4, 1);
+
+        let a = big.num(&"56".to_string(), false);
+        let b = big.num(&"789".to_string(), true);
+        let d = big.num(&"44184".to_string(), false);
+
+        let c = d / b;
+        assert!(a == c);
     }
 }
