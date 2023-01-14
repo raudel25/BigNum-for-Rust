@@ -57,7 +57,7 @@ pub fn create_number_value(
     number_value
 }
 
-fn add_zeros_left(s: &String, cant: usize) -> String {
+pub fn add_zeros_left(s: &String, cant: usize) -> String {
     format!("{}{}", &create_zeros(cant), s)
 }
 

@@ -1,6 +1,7 @@
 use aux_operations::*;
 use basic_operations::*;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
+use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 mod aux_operations;
@@ -32,6 +33,7 @@ impl BigNum {
     }
 }
 
+#[derive(Debug)]
 pub struct Number {
     number_value: Vec<u64>,
     pub precision: usize,
@@ -120,6 +122,38 @@ impl Number {
             ind_base10,
             positive,
         }
+    }
+    fn my_string(&self) -> String {
+        let sign_str = if !self.positive {
+            String::from("-")
+        } else {
+            String::new()
+        };
+
+        let mut part_decimal = String::new();
+        let mut part_int = String::new();
+
+        for i in 0..self.precision {
+            let aux = self.number_value[i].to_string();
+            part_decimal = format!(
+                "{}{}",
+                add_zeros_left(&aux, self.ind_base10 - aux.len()),
+                part_decimal
+            );
+        }
+        for i in self.precision..self.number_value.len() {
+            let aux = self.number_value[i].to_string();
+            part_int = format!(
+                "{}{}",
+                add_zeros_left(&aux, self.ind_base10 - aux.len()),
+                part_int
+            );
+        }
+
+        part_decimal = eliminate_zeros_right(&part_decimal);
+        part_int = eliminate_zeros_left(&part_int);
+
+        format!("{}{}.{}", sign_str, part_int, part_decimal)
     }
 }
 
@@ -264,6 +298,12 @@ impl Div for Number {
     }
 }
 
+impl fmt::Display for Number {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.my_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -321,6 +361,19 @@ mod tests {
         let d = big.num(&"44184".to_string(), false);
 
         let c = d / b;
-        assert!(a == c);
+        assert_eq!(a, c);
+    }
+
+    #[test]
+    fn str() {
+        let big = BigNum::new(4, 6);
+
+        let a = big.num(&"56".to_string(), false);
+        let b = big.num(&"00789".to_string(), true);
+        let d = big.num(&"0".to_string(), false);
+
+        assert_eq!(a.to_string(), String::from("-56.0"));
+        assert_eq!(b.to_string(), "789.0");
+        assert_eq!(d.to_string(), "0.0");
     }
 }
