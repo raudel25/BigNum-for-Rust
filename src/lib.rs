@@ -1,8 +1,9 @@
 use aux_operations::*;
 use basic_operations::*;
+use std::clone::Clone;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::fmt;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::process;
 
 mod aux_operations;
@@ -92,6 +93,26 @@ impl Number {
         )
     }
 
+    pub fn number0(&self) -> Number {
+        Number::new_priv(
+            &vec![0; self.precision + 1],
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            self.positive,
+        )
+    }
+
+    pub fn number1(&self) -> Number {
+        Number::new_priv(
+            &[vec![0; self.precision], vec![1]].concat(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            self.positive,
+        )
+    }
+
     fn compare_to(&self, n: &Number) -> i32 {
         if self.positive == n.positive {
             if self.positive {
@@ -104,6 +125,110 @@ impl Number {
         }
 
         return -1;
+    }
+
+    pub fn add(&self, rhs: &Self) -> Self {
+        self.valid_operation(rhs);
+
+        let x = self;
+        let y = rhs;
+        let lx = &x.number_value;
+        let ly = &y.number_value;
+
+        if x.positive == y.positive {
+            return Number::new_priv(
+                &sum_number(lx, ly, self.base10),
+                self.precision,
+                self.ind_base10,
+                self.base10,
+                x.positive,
+            );
+        };
+
+        let compare = x.abs().compare_to(&y.abs());
+        if compare == 0 {
+            return Number::new_priv(
+                &vec![0; self.precision + 1],
+                self.precision,
+                self.ind_base10,
+                self.base10,
+                x.positive,
+            );
+        }
+        if compare == 1 {
+            return Number::new_priv(
+                &sub_number(lx, ly, self.base10),
+                self.precision,
+                self.ind_base10,
+                self.base10,
+                x.positive,
+            );
+        }
+
+        return Number::new_priv(
+            &sub_number(ly, lx, self.base10),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            y.positive,
+        );
+    }
+
+    pub fn neg(&self) -> Self {
+        Number::new_priv(
+            &self.number_value,
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            !self.positive,
+        )
+    }
+
+    pub fn mul(&self, rhs: &Self) -> Self {
+        self.valid_operation(rhs);
+
+        let x = self;
+        let y = rhs;
+
+        let positive = x.positive == y.positive;
+
+        let tuple = equal_zeros_left_value(&x.number_value, &y.number_value);
+
+        let result = karatsuba_algorithm(&tuple.0, &tuple.1, self.base10);
+        Number::new_priv(
+            &result[self.precision..].iter().cloned().collect(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            positive,
+        )
+    }
+
+    pub fn div(&self, rhs: &Self) -> Self {
+        self.valid_operation(rhs);
+
+        let x = self;
+        let y = rhs;
+        let positive = x.positive == y.positive;
+
+        let result = division_algorithm_d(
+            &x.number_value,
+            &y.number_value,
+            self.precision,
+            self.base10,
+        )
+        .unwrap_or_else(|err| {
+            eprintln!("Problem in division: {}", err);
+            process::exit(1);
+        });
+
+        Number::new_priv(
+            &result,
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            positive,
+        )
     }
 
     fn new_priv(
@@ -129,6 +254,7 @@ impl Number {
             positive,
         }
     }
+
     fn my_string(&self) -> String {
         let sign_str = if !self.positive {
             String::from("-")
@@ -200,50 +326,13 @@ impl Add for Number {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        self.valid_operation(&rhs);
+        Self::add(&self, &rhs)
+    }
+}
 
-        let x = &self;
-        let y = &rhs;
-        let lx = &x.number_value;
-        let ly = &y.number_value;
-
-        if x.positive == y.positive {
-            return Number::new_priv(
-                &sum_number(lx, ly, self.base10),
-                self.precision,
-                self.ind_base10,
-                self.base10,
-                x.positive,
-            );
-        };
-
-        let compare = x.abs().compare_to(&y.abs());
-        if compare == 0 {
-            return Number::new_priv(
-                &vec![0; self.precision + 1],
-                self.precision,
-                self.ind_base10,
-                self.base10,
-                x.positive,
-            );
-        }
-        if compare == 1 {
-            return Number::new_priv(
-                &sub_number(lx, ly, self.base10),
-                self.precision,
-                self.ind_base10,
-                self.base10,
-                x.positive,
-            );
-        }
-
-        return Number::new_priv(
-            &sub_number(ly, lx, self.base10),
-            self.precision,
-            self.ind_base10,
-            self.base10,
-            y.positive,
-        );
+impl AddAssign for Number {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = Self::add(&self, &rhs);
     }
 }
 
@@ -251,13 +340,7 @@ impl Neg for Number {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Number::new_priv(
-            &self.number_value,
-            self.precision,
-            self.ind_base10,
-            self.base10,
-            !self.positive,
-        )
+        Self::neg(&self)
     }
 }
 
@@ -269,27 +352,23 @@ impl Sub for Number {
     }
 }
 
+impl SubAssign for Number {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = Self::add(&self, &Self::neg(&rhs));
+    }
+}
+
 impl Mul for Number {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        self.valid_operation(&rhs);
+        Self::mul(&self, &rhs)
+    }
+}
 
-        let x = &self;
-        let y = &rhs;
-
-        let positive = x.positive == y.positive;
-
-        let tuple = equal_zeros_left_value(&x.number_value, &y.number_value);
-
-        let result = karatsuba_algorithm(&tuple.0, &tuple.1, self.base10);
-        Number::new_priv(
-            &result[self.precision..].iter().cloned().collect(),
-            self.precision,
-            self.ind_base10,
-            self.base10,
-            positive,
-        )
+impl MulAssign for Number {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = Self::mul(&self, &rhs);
     }
 }
 
@@ -297,36 +376,31 @@ impl Div for Number {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        self.valid_operation(&rhs);
+        Self::div(&self, &rhs)
+    }
+}
 
-        let x = &self;
-        let y = &rhs;
-        let positive = x.positive == y.positive;
-
-        let result = division_algorithm_d(
-            &x.number_value,
-            &y.number_value,
-            self.precision,
-            self.base10,
-        )
-        .unwrap_or_else(|err| {
-            eprintln!("Problem in division: {}", err);
-            process::exit(1);
-        });
-
-        Number::new_priv(
-            &result,
-            self.precision,
-            self.ind_base10,
-            self.base10,
-            positive,
-        )
+impl DivAssign for Number {
+    fn div_assign(&mut self, rhs: Self) {
+        *self = Self::div(&self, &rhs);
     }
 }
 
 impl fmt::Display for Number {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.my_string())
+    }
+}
+
+impl Clone for Number {
+    fn clone(&self) -> Self {
+        Number::new_priv(
+            &self.number_value,
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            self.positive,
+        )
     }
 }
 
@@ -400,5 +474,17 @@ mod tests {
         assert_eq!(a.to_string(), String::from("-56.0"));
         assert_eq!(b.to_string(), "789.0");
         assert_eq!(d.to_string(), "0.0");
+    }
+
+    #[test]
+    fn assign() {
+        let big = BigNum::new(4, 6);
+
+        let mut a = big.num(&"56".to_string(), false);
+        let b = big.num(&"789".to_string(), false);
+        let d = big.num(&"845".to_string(), false);
+
+        a += b;
+        assert_eq!(a, d);
     }
 }
