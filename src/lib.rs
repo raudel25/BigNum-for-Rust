@@ -491,11 +491,16 @@ mod tests {
 
     #[test]
     fn sin_cos() {
-        let big = BigNum::new(4, 3);
+        let big = BigNum::new(6, 9);
 
         let a = big.num(&"0.3".to_string(), true);
         let x = 0.3_f64.sin();
 
-        assert_eq!(math::sin(&a, 20).to_string()[..10], x.to_string()[..10]);
+        assert_eq!(math::sin(&a, 50).to_string()[..10], x.to_string()[..10]);
+
+        let a = big.num(&"2.23".to_string(), true);
+        let x = 2.23_f64.sin();
+
+        assert_eq!(math::sin(&a, 50).to_string()[..10], x.to_string()[..10]);
     }
 }
