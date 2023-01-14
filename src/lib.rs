@@ -3,6 +3,7 @@ use basic_operations::*;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::fmt;
 use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::process;
 
 mod aux_operations;
 mod basic_operations;
@@ -10,7 +11,7 @@ mod basic_operations;
 pub struct BigNum {
     pub precision: usize,
     pub ind_base10: usize,
-    pub base10: u64,
+    base10: u64,
 }
 
 impl BigNum {
@@ -23,6 +24,11 @@ impl BigNum {
     }
 
     pub fn num(&self, number: &String, positive: bool) -> Number {
+        if self.ind_base10 > 9 {
+            eprint!("Problem ind_base10 not supported: ind_base10 must be less than 9");
+            process::exit(1);
+        }
+
         Number::new(
             number,
             self.precision,
@@ -155,10 +161,22 @@ impl Number {
 
         format!("{}{}.{}", sign_str, part_int, part_decimal)
     }
+
+    fn valid_operation(&self, other: &Self) {
+        if self.precision != other.precision {
+            eprintln!("Problem in operation: the do not have the same precision");
+            process::exit(1);
+        }
+        if self.ind_base10 != other.ind_base10 {
+            eprintln!("Problem in operation: the do not have the same base");
+            process::exit(1);
+        }
+    }
 }
 
 impl Ord for Number {
     fn cmp(&self, other: &Self) -> Ordering {
+        self.valid_operation(other);
         0.cmp(&(-self.compare_to(other)))
     }
 }
@@ -173,6 +191,7 @@ impl Eq for Number {}
 
 impl PartialEq for Number {
     fn eq(&self, other: &Self) -> bool {
+        self.valid_operation(other);
         Self::compare_to(self, other) == 0
     }
 }
@@ -181,6 +200,8 @@ impl Add for Number {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
+        self.valid_operation(&rhs);
+
         let x = &self;
         let y = &rhs;
         let lx = &x.number_value;
@@ -252,6 +273,8 @@ impl Mul for Number {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
+        self.valid_operation(&rhs);
+
         let x = &self;
         let y = &rhs;
 
@@ -274,22 +297,25 @@ impl Div for Number {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
+        self.valid_operation(&rhs);
+
         let x = &self;
         let y = &rhs;
         let positive = x.positive == y.positive;
 
-        // if y == self.real0():
-        //     raise Exception("Operacion Invalida (division por 0)")
-        // if y.abs == self.real1():
-        //     return Numbers(x.__number_value, positive, self.__precision, self.__ind_base10, self.__base10)
+        let result = division_algorithm_d(
+            &x.number_value,
+            &y.number_value,
+            self.precision,
+            self.base10,
+        )
+        .unwrap_or_else(|err| {
+            eprintln!("Problem in division: {}", err);
+            process::exit(1);
+        });
 
         Number::new_priv(
-            &division_algorithm_d(
-                &x.number_value,
-                &y.number_value,
-                self.precision,
-                self.base10,
-            ),
+            &result,
             self.precision,
             self.ind_base10,
             self.base10,
@@ -325,7 +351,6 @@ mod tests {
         assert!(b.positive);
 
         assert!(b > a1);
-        // assert!(a1 < a);
     }
 
     #[test]

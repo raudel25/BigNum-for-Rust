@@ -111,8 +111,13 @@ pub fn karatsuba_algorithm(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> 
     return sum_number(&z2, &sum_number(&z1, &z0, base10), base10);
 }
 
-pub fn division_algorithm_d(x: &Vec<u64>, y: &Vec<u64>, precision: usize, base10: u64) -> Vec<u64> {
-    let tuple = normalize(x, y, base10);
+pub fn division_algorithm_d(
+    x: &Vec<u64>,
+    y: &Vec<u64>,
+    precision: usize,
+    base10: u64,
+) -> Result<Vec<u64>, Box<dyn std::error::Error>> {
+    let tuple = normalize(x, y, base10)?;
     let x = tuple.0;
     let y = tuple.1;
 
@@ -132,14 +137,18 @@ pub fn division_algorithm_d(x: &Vec<u64>, y: &Vec<u64>, precision: usize, base10
     }
 
     result.reverse();
-    result
+    Ok(result)
 }
 
-fn normalize(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> (Vec<u64>, Vec<u64>) {
+fn normalize(
+    x: &Vec<u64>,
+    y: &Vec<u64>,
+    base10: u64,
+) -> Result<(Vec<u64>, Vec<u64>), &'static str> {
     if y[y.len() - 1] < base10 / 2 {
         let y_aux = eliminate_zeros_left_value(&y, 0);
         if y_aux.len() == 1 && y_aux[0] == 0 {
-            panic!("sldkvn");
+            return Err("division by zero");
         }
         let y = add_zeros_right_value(&y_aux, y.len() - y_aux.len());
         let x = add_zeros_right_value(x, y.len() - y_aux.len());
@@ -162,13 +171,13 @@ fn normalize(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> (Vec<u64>, Vec<u64>) {
             _ => 1,
         };
 
-        return (
+        return Ok((
             simple_multiplication(&x, mult, base10),
             simple_multiplication(&y, mult, base10),
-        );
+        ));
     }
 
-    (x.clone(), y.clone())
+    Ok((x.clone(), y.clone()))
 }
 
 fn division_immediate(
