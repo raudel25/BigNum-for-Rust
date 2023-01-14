@@ -96,18 +96,8 @@ pub fn eliminate_zeros_left(s: &String) -> String {
 pub fn eliminate_zeros_right(s: &String) -> String {
     let s: String = s.chars().rev().collect();
 
-    eliminate_zeros_left(&s)
+    eliminate_zeros_left(&s).chars().rev().collect()
 }
-
-// def equal_zeros_left(x: str, y: str) -> tuple:
-//     ind: int = max(len(x), len(y))
-
-//     return ind, add_zeros_left(x, ind - len(x)), add_zeros_left(y, ind - len(y))
-
-// def equal_zeros_right(x: str, y: str) -> tuple:
-//     ind: int = max(len(x), len(y))
-
-//     return ind, add_zeros_right(x, ind - len(x)), add_zeros_right(y, ind - len(y))
 
 pub fn eliminate_zeros_left_value(number_value: &Vec<u64>, precision: usize) -> Vec<u64> {
     let mut l = Vec::new();

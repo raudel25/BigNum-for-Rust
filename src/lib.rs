@@ -8,6 +8,7 @@ use std::process;
 
 mod aux_operations;
 mod basic_operations;
+pub mod math;
 
 pub struct BigNum {
     pub precision: usize,
@@ -453,14 +454,14 @@ mod tests {
 
     #[test]
     fn div() {
-        let big = BigNum::new(4, 1);
+        let big = BigNum::new(4, 3);
 
-        let a = big.num(&"56".to_string(), false);
-        let b = big.num(&"789".to_string(), true);
-        let d = big.num(&"44184".to_string(), false);
+        let a = big.num(&"1".to_string(), false);
+        let b = big.num(&"10000".to_string(), true);
+        let d = big.num(&"0.0001".to_string(), false);
 
-        let c = d / b;
-        assert_eq!(a, c);
+        let c = a / b;
+        assert_eq!(d, c);
     }
 
     #[test]
@@ -486,5 +487,15 @@ mod tests {
 
         a += b;
         assert_eq!(a, d);
+    }
+
+    #[test]
+    fn sin_cos() {
+        let big = BigNum::new(4, 3);
+
+        let a = big.num(&"0.3".to_string(), true);
+        let x = 0.3_f64.sin();
+
+        assert_eq!(math::sin(&a, 20).to_string()[..10], x.to_string()[..10]);
     }
 }
