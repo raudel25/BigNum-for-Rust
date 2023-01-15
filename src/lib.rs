@@ -8,6 +8,7 @@ use std::process;
 
 mod aux_operations;
 mod basic_operations;
+mod logarithm;
 mod trigonometry;
 
 pub struct BigNum {
@@ -138,7 +139,7 @@ impl BigNum {
     }
 
     pub fn e(&self) -> Number {
-        let precision = 50;
+        let precision = 40;
         let mut e = self.number0();
         let mut fact = self.number1();
         let mut index = self.number0();
@@ -154,6 +155,14 @@ impl BigNum {
         }
 
         e
+    }
+
+    pub fn ln(&self, x: &Number) -> Number {
+        logarithm::ln_method(x, 150, self.number1(), self.number0())
+    }
+
+    pub fn log(&self, base: &Number, x: &Number) -> Number {
+        logarithm::log_method(base, x, 150, self.number1(), self.number0())
     }
 }
 
@@ -683,6 +692,33 @@ mod tests {
         let a = big.e();
 
         assert_eq!(a.to_string()[..10], std::f64::consts::E.to_string()[..10]);
+    }
+
+    #[test]
+    fn log() {
+        let big = BigNum::new(6, 9);
+
+        let a = big.num(&String::from("2.23"), true);
+
+        assert_eq!(
+            big.ln(&a).to_string()[..10],
+            2.23_f64.ln().to_string()[..10]
+        );
+
+        let a = big.num(&String::from("3"), true);
+
+        let b = big.num(&String::from("27"), true);
+
+        assert_eq!(big.log(&a, &b), a);
+
+        let a = big.num(&String::from("32.3"), true);
+
+        let b = big.num(&String::from("27"), true);
+
+        assert_eq!(
+            big.log(&a, &b).to_string()[..4],
+            27_f64.log(32.3).to_string()[..4]
+        );
     }
 
     #[test]
