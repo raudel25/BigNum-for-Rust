@@ -3,7 +3,7 @@ use basic_operations::*;
 use std::clone::Clone;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::fmt;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, Sub, SubAssign};
 use std::process;
 
 mod aux_operations;
@@ -18,6 +18,11 @@ pub struct BigNum {
 
 impl BigNum {
     pub fn new(precision: usize, ind_base10: usize) -> BigNum {
+        if ind_base10 > 9 {
+            eprint!("Problem ind_base10 not supported: ind_base10 must be less than 9");
+            process::exit(1);
+        }
+
         BigNum {
             precision,
             ind_base10,
@@ -26,17 +31,13 @@ impl BigNum {
     }
 
     pub fn num(&self, number: &String, positive: bool) -> Number {
-        if self.ind_base10 > 9 {
-            eprint!("Problem ind_base10 not supported: ind_base10 must be less than 9");
-            process::exit(1);
-        }
-
         Number::new(
             number,
             self.precision,
             self.ind_base10,
             self.base10,
             positive,
+            false,
         )
     }
 
@@ -47,6 +48,7 @@ impl BigNum {
             self.ind_base10,
             self.base10,
             true,
+            false,
         )
     }
 
@@ -57,6 +59,7 @@ impl BigNum {
             self.ind_base10,
             self.base10,
             true,
+            false,
         )
     }
 
@@ -96,6 +99,7 @@ impl BigNum {
             self.ind_base10,
             self.base10,
             true,
+            false,
         );
 
         let number6 = Number::new_priv(
@@ -104,9 +108,33 @@ impl BigNum {
             self.ind_base10,
             self.base10,
             true,
+            false,
         );
 
         trigonometry::asin(&number05, 200, self.number0(), self.number1()) * number6
+    }
+}
+
+pub struct BigInt {
+    pub ind_base10: usize,
+    base10: u64,
+}
+
+impl BigInt {
+    pub fn new(ind_base10: usize) -> BigInt {
+        if ind_base10 > 9 {
+            eprint!("Problem ind_base10 not supported: ind_base10 must be less than 9");
+            process::exit(1);
+        }
+
+        BigInt {
+            ind_base10,
+            base10: 10_u64.pow(ind_base10.try_into().unwrap()),
+        }
+    }
+
+    pub fn int(&self, number: &String, positive: bool) -> Number {
+        Number::new(number, 1, self.ind_base10, self.base10, positive, true)
     }
 }
 
@@ -117,6 +145,7 @@ pub struct Number {
     pub ind_base10: usize,
     pub base10: u64,
     pub positive: bool,
+    pub int: bool,
 }
 
 impl Number {
@@ -126,6 +155,7 @@ impl Number {
         ind_base10: usize,
         base10: u64,
         positive: bool,
+        int: bool,
     ) -> Number {
         let number = int_and_decimal(number);
         let number = (
@@ -150,6 +180,7 @@ impl Number {
             base10,
             ind_base10,
             positive,
+            int,
         }
     }
 
@@ -160,6 +191,7 @@ impl Number {
             self.ind_base10,
             self.base10,
             true,
+            self.int,
         )
     }
 
@@ -192,6 +224,7 @@ impl Number {
                 self.ind_base10,
                 self.base10,
                 x.positive,
+                self.int,
             );
         };
 
@@ -203,6 +236,7 @@ impl Number {
                 self.ind_base10,
                 self.base10,
                 x.positive,
+                self.int,
             );
         }
         if compare == 1 {
@@ -212,6 +246,7 @@ impl Number {
                 self.ind_base10,
                 self.base10,
                 x.positive,
+                self.int,
             );
         }
 
@@ -221,6 +256,7 @@ impl Number {
             self.ind_base10,
             self.base10,
             y.positive,
+            self.int,
         );
     }
 
@@ -231,6 +267,7 @@ impl Number {
             self.ind_base10,
             self.base10,
             !self.positive,
+            self.int,
         )
     }
 
@@ -251,6 +288,7 @@ impl Number {
             self.ind_base10,
             self.base10,
             positive,
+            self.int,
         )
     }
 
@@ -261,7 +299,7 @@ impl Number {
         let y = rhs;
         let positive = x.positive == y.positive;
 
-        let result = division_algorithm_d(
+        let mut result = division_algorithm_d(
             &x.number_value,
             &y.number_value,
             self.precision,
@@ -272,12 +310,17 @@ impl Number {
             process::exit(1);
         });
 
+        if self.int {
+            result[0] = 0;
+        }
+
         Number::new_priv(
             &result,
             self.precision,
             self.ind_base10,
             self.base10,
             positive,
+            self.int,
         )
     }
 
@@ -287,6 +330,7 @@ impl Number {
         ind_base10: usize,
         base10: u64,
         positive: bool,
+        int: bool,
     ) -> Number {
         let number_value: Vec<u64> = eliminate_zeros_left_value(number, precision);
 
@@ -302,6 +346,7 @@ impl Number {
             base10,
             ind_base10,
             positive,
+            int,
         }
     }
 
@@ -345,6 +390,10 @@ impl Number {
         }
         if self.ind_base10 != other.ind_base10 {
             eprintln!("Problem in operation: the do not have the same base");
+            process::exit(1);
+        }
+        if self.int != other.int {
+            eprintln!("Problem in operation: operation between an integer an a real");
             process::exit(1);
         }
     }
@@ -436,6 +485,21 @@ impl DivAssign for Number {
     }
 }
 
+impl Rem for Number {
+    type Output = Self;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        self.valid_operation(&rhs);
+        if !self.int || !rhs.int {
+            eprintln!("Problem in operation: operation remainder is not defined for a real");
+            process::exit(1);
+        }
+
+        let aux = Self::mul(&Self::div(&self, &rhs), &rhs);
+        self - aux
+    }
+}
+
 impl fmt::Display for Number {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.my_string())
@@ -450,6 +514,7 @@ impl Clone for Number {
             self.ind_base10,
             self.base10,
             self.positive,
+            self.int,
         )
     }
 }
@@ -575,5 +640,28 @@ mod tests {
         let a = big.pi();
 
         assert_eq!(a.to_string()[..10], std::f64::consts::PI.to_string()[..10]);
+    }
+
+    #[test]
+    fn int() {
+        let big = BigInt::new(9);
+
+        let a = big.int(&"1".to_string(), true);
+        let b = big.int(&"2".to_string(), true);
+        let c = big.int(&"3".to_string(), true);
+
+        assert_eq!(c / b, a);
+
+        let a = big.int(&"0".to_string(), true);
+        let b = big.int(&"2000000000".to_string(), true);
+        let c = big.int(&"3".to_string(), true);
+
+        assert_eq!(c / b, a);
+
+        let a = big.int(&"1".to_string(), true);
+        let b = big.int(&"3".to_string(), true);
+        let c = big.int(&"10".to_string(), true);
+
+        assert_eq!(c % b, a);
     }
 }
