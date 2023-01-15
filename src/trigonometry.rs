@@ -1,6 +1,12 @@
 use super::Number;
 
-pub fn sin_cos(x: &Number, sin: bool, precision: usize) -> Number {
+pub fn sin_cos(
+    x: &Number,
+    sin: bool,
+    precision: usize,
+    number0: Number,
+    number1: Number,
+) -> Number {
     let filter1 = if sin {
         |a| (a & 1) == 0
     } else {
@@ -8,10 +14,10 @@ pub fn sin_cos(x: &Number, sin: bool, precision: usize) -> Number {
     };
     let filter2 = if sin { |a| a % 4 == 1 } else { |a| a % 4 == 0 };
 
-    let mut result = x.number0();
-    let mut pow_value = x.number1();
-    let mut fact = x.number1();
-    let mut index = x.number0();
+    let mut result = number0.clone();
+    let mut pow_value = number1.clone();
+    let mut fact = number1.clone();
+    let mut index = number0.clone();
 
     //  Serie de taylor sen x cos x
     // https: // es.wikipedia.org / wiki / Serie_de_Taylor
@@ -21,7 +27,7 @@ pub fn sin_cos(x: &Number, sin: bool, precision: usize) -> Number {
             pow_value *= x.clone();
         }
 
-        index += x.number1();
+        index += number1.clone();
 
         if filter1(i) {
             continue;
@@ -37,18 +43,25 @@ pub fn sin_cos(x: &Number, sin: bool, precision: usize) -> Number {
     result
 }
 
-pub fn atan(x: &Number, precision: usize, pi: Number) -> Number {
+pub fn atan(x: &Number, precision: usize, pi: Number, number0: Number, number1: Number) -> Number {
     //  arctan(x)+arctan(1/x)=pi/2
     //  arctan(1/x)=arccot(x)
 
-    let number2 = x.number1() + x.number1();
+    let number2 = number1.clone() + number1.clone();
 
-    if x.abs() > x.number1() {
-        return pi.clone() - atan(&(x.number1() / x.clone()), precision, pi);
+    if x.abs() > number1 {
+        return pi.clone()
+            - atan(
+                &(number1.clone() / x.clone()),
+                precision,
+                pi,
+                number0,
+                number1,
+            );
     }
     let mut pow_value = x.clone();
-    let mut index = x.number1();
-    let mut arctan = x.number0();
+    let mut index = number1.clone();
+    let mut arctan = number0;
     let xx = x.clone() * x.clone();
 
     for i in 0..precision {
@@ -64,15 +77,15 @@ pub fn atan(x: &Number, precision: usize, pi: Number) -> Number {
     arctan
 }
 
-pub fn asin(x: &Number, precision: usize) -> Number {
+pub fn asin(x: &Number, precision: usize, number0: Number, number1: Number) -> Number {
     // if x_abs > number1:
     //     raise Exception("Operacion Invalida (arcsin recive valores entre 1 y -1)")
 
-    let mut index = x.number1();
-    let mut even = x.number1();
-    let mut odd = x.number1();
-    let mut pow_value = x.number1();
-    let mut arcsin = x.number0();
+    let mut index = number1.clone();
+    let mut even = number1.clone();
+    let mut odd = number1.clone();
+    let mut pow_value = number1.clone();
+    let mut arcsin = number0.clone();
 
     for i in 1..precision {
         pow_value *= x.clone();
@@ -85,7 +98,7 @@ pub fn asin(x: &Number, precision: usize) -> Number {
             arcsin += (odd.clone() * pow_value.clone()) / (even.clone() * index.clone());
             odd *= index.clone();
         }
-        index += x.number1();
+        index += number1.clone();
     }
 
     arcsin

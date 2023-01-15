@@ -40,12 +40,32 @@ impl BigNum {
         )
     }
 
+    pub fn number0(&self) -> Number {
+        Number::new_priv(
+            &vec![0; self.precision + 1],
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            true,
+        )
+    }
+
+    pub fn number1(&self) -> Number {
+        Number::new_priv(
+            &[vec![0; self.precision], vec![1]].concat(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            true,
+        )
+    }
+
     pub fn sin(&self, x: &Number) -> Number {
-        trigonometry::sin_cos(x, true, 50)
+        trigonometry::sin_cos(x, true, 50, self.number0(), self.number1())
     }
 
     pub fn cos(&self, x: &Number) -> Number {
-        trigonometry::sin_cos(x, false, 50)
+        trigonometry::sin_cos(x, false, 50, self.number0(), self.number1())
     }
 
     pub fn tan(&self, x: &Number) -> Number {
@@ -57,16 +77,17 @@ impl BigNum {
     }
 
     pub fn atan(&self, x: &Number) -> Number {
-        trigonometry::atan(x, 1000, self.pi())
+        trigonometry::atan(x, 1000, self.pi(), self.number0(), self.number1())
     }
 
     pub fn asin(&self, x: &Number) -> Number {
-        trigonometry::asin(x, 200)
+        trigonometry::asin(x, 200, self.number0(), self.number1())
     }
 
-    // pub fn acos(&self,y:&Number)->{
-    //     self.pi() / () - trigonometryasin(x, precision, self.number1(), self.number0())
-    // }
+    pub fn acos(&self, x: &Number) -> Number {
+        self.pi() / (self.number1() + self.number1())
+            - trigonometry::asin(x, 200, self.number1(), self.number0())
+    }
 
     pub fn pi(&self) -> Number {
         let number05 = Number::new(
@@ -85,7 +106,7 @@ impl BigNum {
             true,
         );
 
-        trigonometry::asin(&number05, 200) * number6
+        trigonometry::asin(&number05, 200, self.number0(), self.number1()) * number6
     }
 }
 
@@ -139,26 +160,6 @@ impl Number {
             self.ind_base10,
             self.base10,
             true,
-        )
-    }
-
-    pub fn number0(&self) -> Number {
-        Number::new_priv(
-            &vec![0; self.precision + 1],
-            self.precision,
-            self.ind_base10,
-            self.base10,
-            self.positive,
-        )
-    }
-
-    pub fn number1(&self) -> Number {
-        Number::new_priv(
-            &[vec![0; self.precision], vec![1]].concat(),
-            self.precision,
-            self.ind_base10,
-            self.base10,
-            self.positive,
         )
     }
 
