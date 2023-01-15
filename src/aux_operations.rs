@@ -35,7 +35,7 @@ pub fn create_number_value(
     for i in 0..(part_decimal.len() / ind_base10) {
         number_value[len - i - 2] = part_decimal[i * ind_base10..ind_base10 * (i + 1)]
             .parse()
-            .unwrap();
+            .expect("incorrect format for number");
 
         if i + 1 == precision {
             break;
@@ -44,13 +44,13 @@ pub fn create_number_value(
 
     number_value[len - 1] = part_int[part_int.len() - ind_base10..part_int.len()]
         .parse()
-        .unwrap();
+        .expect("incorrect format for number");
 
     for i in 1..part_int.len() / ind_base10 {
         number_value.push(
             part_int[part_int.len() - (1 + i) * ind_base10..part_int.len() - i * ind_base10]
                 .parse()
-                .unwrap(),
+                .expect("incorrect format for number"),
         );
     }
 

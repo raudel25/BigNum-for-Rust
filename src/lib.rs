@@ -18,10 +18,7 @@ pub struct BigNum {
 
 impl BigNum {
     pub fn new(precision: usize, ind_base10: usize) -> BigNum {
-        if ind_base10 > 9 {
-            eprint!("Problem ind_base10 not supported: ind_base10 must be less than 9");
-            process::exit(1);
-        }
+        Self::valid_assign(precision, ind_base10);
 
         BigNum {
             precision,
@@ -39,6 +36,21 @@ impl BigNum {
             positive,
             false,
         )
+    }
+
+    fn valid_assign(precision: usize, ind_base10: usize) {
+        if ind_base10 > 9 {
+            eprint!("Problem ind_base10 not supported: ind_base10 must be less than 9");
+            process::exit(1);
+        }
+        if ind_base10 == 0 {
+            eprint!("Problem ind_base10 not supported: ind_base10 cannot be 0");
+            process::exit(1);
+        }
+        if precision == 0 {
+            eprint!("Problem precision not supported: ind_base10 cannot be 0");
+            process::exit(1);
+        }
     }
 
     pub fn number0(&self) -> Number {
@@ -84,12 +96,23 @@ impl BigNum {
     }
 
     pub fn asin(&self, x: &Number) -> Number {
-        trigonometry::asin(x, 200, self.number0(), self.number1())
+        let result =
+            trigonometry::asin(x, 200, self.number0(), self.number1()).unwrap_or_else(|err| {
+                eprintln!("Problem in asin: {}", err);
+                process::exit(1);
+            });
+
+        result
     }
 
     pub fn acos(&self, x: &Number) -> Number {
-        self.pi() / (self.number1() + self.number1())
-            - trigonometry::asin(x, 200, self.number1(), self.number0())
+        let result = self.pi() / (self.number1() + self.number1())
+            - trigonometry::asin(x, 200, self.number1(), self.number0()).unwrap_or_else(|err| {
+                eprintln!("Problem in asin: {}", err);
+                process::exit(1);
+            });
+
+        result
     }
 
     pub fn pi(&self) -> Number {
@@ -111,7 +134,7 @@ impl BigNum {
             false,
         );
 
-        trigonometry::asin(&number05, 200, self.number0(), self.number1()) * number6
+        trigonometry::asin(&number05, 200, self.number0(), self.number1()).unwrap() * number6
     }
 }
 
@@ -122,10 +145,7 @@ pub struct BigInt {
 
 impl BigInt {
     pub fn new(ind_base10: usize) -> BigInt {
-        if ind_base10 > 9 {
-            eprint!("Problem ind_base10 not supported: ind_base10 must be less than 9");
-            process::exit(1);
-        }
+        BigNum::valid_assign(1, ind_base10);
 
         BigInt {
             ind_base10,

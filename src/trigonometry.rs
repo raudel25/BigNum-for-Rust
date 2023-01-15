@@ -77,9 +77,15 @@ pub fn atan(x: &Number, precision: usize, pi: Number, number0: Number, number1: 
     arctan
 }
 
-pub fn asin(x: &Number, precision: usize, number0: Number, number1: Number) -> Number {
-    // if x_abs > number1:
-    //     raise Exception("Operacion Invalida (arcsin recive valores entre 1 y -1)")
+pub fn asin(
+    x: &Number,
+    precision: usize,
+    number0: Number,
+    number1: Number,
+) -> Result<Number, &'static str> {
+    if x.abs() > number1 {
+        return Err("domain of arcsin is between -1 and 1");
+    }
 
     let mut index = number1.clone();
     let mut even = number1.clone();
@@ -101,5 +107,5 @@ pub fn asin(x: &Number, precision: usize, number0: Number, number1: Number) -> N
         index += number1.clone();
     }
 
-    arcsin
+    Ok(arcsin)
 }
