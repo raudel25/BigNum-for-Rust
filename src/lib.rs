@@ -136,6 +136,25 @@ impl BigNum {
 
         trigonometry::asin(&number05, 200, self.number0(), self.number1()).unwrap() * number6
     }
+
+    pub fn e(&self) -> Number {
+        let precision = 50;
+        let mut e = self.number0();
+        let mut fact = self.number1();
+        let mut index = self.number0();
+
+        // Formula de taylor e^x
+        // https://es.wikipedia.org/wiki/Serie_de_Taylor
+        for i in 0..precision {
+            if i != 0 {
+                fact *= index.clone();
+            }
+            e += self.number1() / fact.clone();
+            index += self.number1();
+        }
+
+        e
+    }
 }
 
 pub struct BigInt {
@@ -660,6 +679,10 @@ mod tests {
         let a = big.pi();
 
         assert_eq!(a.to_string()[..10], std::f64::consts::PI.to_string()[..10]);
+
+        let a = big.e();
+
+        assert_eq!(a.to_string()[..10], std::f64::consts::E.to_string()[..10]);
     }
 
     #[test]
