@@ -8,7 +8,7 @@ use std::process;
 
 mod aux_operations;
 mod basic_operations;
-pub mod math;
+mod trigonometry;
 
 pub struct BigNum {
     pub precision: usize,
@@ -38,6 +38,54 @@ impl BigNum {
             self.base10,
             positive,
         )
+    }
+
+    pub fn sin(&self, x: &Number) -> Number {
+        trigonometry::sin_cos(x, true, 50)
+    }
+
+    pub fn cos(&self, x: &Number) -> Number {
+        trigonometry::sin_cos(x, false, 50)
+    }
+
+    pub fn tan(&self, x: &Number) -> Number {
+        self.sin(x) / self.cos(x)
+    }
+
+    pub fn cot(&self, x: &Number) -> Number {
+        self.cos(x) / self.sin(x)
+    }
+
+    pub fn atan(&self, x: &Number) -> Number {
+        trigonometry::atan(x, 1000, self.pi())
+    }
+
+    pub fn asin(&self, x: &Number) -> Number {
+        trigonometry::asin(x, 200)
+    }
+
+    // pub fn acos(&self,y:&Number)->{
+    //     self.pi() / () - trigonometryasin(x, precision, self.number1(), self.number0())
+    // }
+
+    pub fn pi(&self) -> Number {
+        let number05 = Number::new(
+            &"0.5".to_string(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            true,
+        );
+
+        let number6 = Number::new_priv(
+            &[vec![0; self.precision], vec![6]].concat(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            true,
+        );
+
+        trigonometry::asin(&number05, 200) * number6
     }
 }
 
@@ -496,11 +544,35 @@ mod tests {
         let a = big.num(&"0.3".to_string(), true);
         let x = 0.3_f64.sin();
 
-        assert_eq!(math::sin(&a, 50).to_string()[..10], x.to_string()[..10]);
+        assert_eq!(big.sin(&a).to_string()[..10], x.to_string()[..10]);
 
         let a = big.num(&"2.23".to_string(), true);
         let x = 2.23_f64.sin();
 
-        assert_eq!(math::sin(&a, 50).to_string()[..10], x.to_string()[..10]);
+        assert_eq!(big.sin(&a).to_string()[..10], x.to_string()[..10]);
+    }
+
+    #[test]
+    fn asin_atan() {
+        let big = BigNum::new(6, 9);
+
+        let a = big.num(&"0.31".to_string(), true);
+        let x = 0.31_f64.asin();
+
+        assert_eq!(big.asin(&a).to_string()[..10], x.to_string()[..10]);
+
+        let a = big.num(&"0.23".to_string(), true);
+        let x = 0.23_f64.atan();
+
+        assert_eq!(big.atan(&a).to_string()[..10], x.to_string()[..10]);
+    }
+
+    #[test]
+    fn pi_e() {
+        let big = BigNum::new(6, 9);
+
+        let a = big.pi();
+
+        assert_eq!(a.to_string()[..10], std::f64::consts::PI.to_string()[..10]);
     }
 }
