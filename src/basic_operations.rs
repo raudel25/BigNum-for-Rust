@@ -2,7 +2,7 @@ use super::aux_operations::{
     add_zeros_right_value, eliminate_zeros_left_value, equal_zeros_left_value,
 };
 
-pub fn sum_number(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> {
+pub fn sum_number(x: &Vec<u128>, y: &Vec<u128>, base10: u128) -> Vec<u128> {
     let tuple = equal_zeros_left_value(x, y);
     let x = tuple.0;
     let y = tuple.1;
@@ -25,19 +25,19 @@ pub fn sum_number(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> {
     result
 }
 
-pub fn sub_number(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> {
+pub fn sub_number(x: &Vec<u128>, y: &Vec<u128>, base10: u128) -> Vec<u128> {
     let tuple = equal_zeros_left_value(x, y);
     let x = tuple.0;
     let y = tuple.1;
 
-    let mut result: Vec<u64> = Vec::new();
+    let mut result: Vec<u128> = Vec::new();
     let mut drag = 0;
-    let base10: i64 = base10.try_into().unwrap();
+    let base10: i128 = base10.try_into().unwrap();
 
     for i in 0..x.len() {
-        let x1: i64 = x[i].try_into().unwrap();
-        let y1: i64 = y[i].try_into().unwrap();
-        let mut n: i64 = x1 - y1;
+        let x1: i128 = x[i].try_into().unwrap();
+        let y1: i128 = y[i].try_into().unwrap();
+        let mut n: i128 = x1 - y1;
 
         n = n - drag;
         drag = if n < 0 { 1 } else { 0 };
@@ -48,7 +48,7 @@ pub fn sub_number(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> {
     result
 }
 
-pub fn compare_list(x: &Vec<u64>, y: &Vec<u64>) -> i32 {
+pub fn compare_list(x: &Vec<u128>, y: &Vec<u128>) -> i32 {
     let aux = super::aux_operations::equal_zeros_left_value(x, y);
     let x = aux.0;
     let y = aux.1;
@@ -65,7 +65,7 @@ pub fn compare_list(x: &Vec<u64>, y: &Vec<u64>) -> i32 {
     return 0;
 }
 
-fn simple_multiplication(x: &Vec<u64>, y: u64, base10: u64) -> Vec<u64> {
+fn simple_multiplication(x: &Vec<u128>, y: u128, base10: u128) -> Vec<u128> {
     let mut drag = 0;
     let mut result = Vec::new();
 
@@ -83,7 +83,7 @@ fn simple_multiplication(x: &Vec<u64>, y: u64, base10: u64) -> Vec<u64> {
     return result;
 }
 
-pub fn karatsuba_algorithm(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> {
+pub fn karatsuba_algorithm(x: &Vec<u128>, y: &Vec<u128>, base10: u128) -> Vec<u128> {
     let tuple = super::aux_operations::equal_zeros_left_value(&x, &y);
     let x = tuple.0;
     let y = tuple.1;
@@ -112,11 +112,11 @@ pub fn karatsuba_algorithm(x: &Vec<u64>, y: &Vec<u64>, base10: u64) -> Vec<u64> 
 }
 
 pub fn division_algorithm_d(
-    x: &Vec<u64>,
-    y: &Vec<u64>,
+    x: &Vec<u128>,
+    y: &Vec<u128>,
     precision: usize,
-    base10: u64,
-) -> Result<Vec<u64>, Box<dyn std::error::Error>> {
+    base10: u128,
+) -> Result<Vec<u128>, Box<dyn std::error::Error>> {
     let tuple = if x.len() >= y.len() {
         normalize(&x, &y, base10)?
     } else {
@@ -145,10 +145,10 @@ pub fn division_algorithm_d(
 }
 
 fn normalize(
-    x: &Vec<u64>,
-    y: &Vec<u64>,
-    base10: u64,
-) -> Result<(Vec<u64>, Vec<u64>), &'static str> {
+    x: &Vec<u128>,
+    y: &Vec<u128>,
+    base10: u128,
+) -> Result<(Vec<u128>, Vec<u128>), &'static str> {
     if y[y.len() - 1] < base10 / 2 {
         let y_aux = eliminate_zeros_left_value(&y, 0);
         if y_aux.len() == 1 && y_aux[0] == 0 {
@@ -163,7 +163,7 @@ fn normalize(
         let logy = y[y.len() - 1].to_string().len();
 
         if aux == 0 {
-            mult = base10 / (10_u64.pow(logy.try_into().unwrap())) / 10;
+            mult = base10 / (10_u128.pow(logy.try_into().unwrap())) / 10;
             aux = y[y.len() - 1] * mult / (base10 / 10);
         }
 
@@ -185,11 +185,11 @@ fn normalize(
 }
 
 fn division_immediate(
-    div: &Vec<u64>,
-    divisor: &Vec<u64>,
-    base10: u64,
+    div: &Vec<u128>,
+    divisor: &Vec<u128>,
+    base10: u128,
     precision: usize,
-) -> (u64, Vec<u64>) {
+) -> (u128, Vec<u128>) {
     if div.len() < divisor.len() {
         return (0, div.clone());
     }

@@ -11,7 +11,7 @@ pub fn int_and_decimal(number: &String) -> (String, String) {
     )
 }
 
-pub fn check_zero(number_value: &Vec<u64>) -> bool {
+pub fn check_zero(number_value: &Vec<u128>) -> bool {
     for i in number_value {
         if i.clone() != 0 {
             return false;
@@ -25,8 +25,8 @@ pub fn create_number_value(
     number: &(String, String),
     precision: usize,
     ind_base10: usize,
-) -> Vec<u64> {
-    let mut number_value: Vec<u64> = vec![0; precision + 1];
+) -> Vec<u128> {
+    let mut number_value: Vec<u128> = vec![0; precision + 1];
     let len = precision + 1;
 
     let part_int = add_zeros_left(&number.0, ind_base10 - number.0.len() % ind_base10);
@@ -99,7 +99,7 @@ pub fn eliminate_zeros_right(s: &String) -> String {
     eliminate_zeros_left(&s).chars().rev().collect()
 }
 
-pub fn eliminate_zeros_left_value(number_value: &Vec<u64>, precision: usize) -> Vec<u64> {
+pub fn eliminate_zeros_left_value(number_value: &Vec<u128>, precision: usize) -> Vec<u128> {
     let mut l = Vec::new();
     let mut act = false;
 
@@ -121,7 +121,7 @@ pub fn eliminate_zeros_left_value(number_value: &Vec<u64>, precision: usize) -> 
     return l;
 }
 
-fn add_zeros_left_value(number_value: &Vec<u64>, cant: usize) -> Vec<u64> {
+fn add_zeros_left_value(number_value: &Vec<u128>, cant: usize) -> Vec<u128> {
     let mut l = number_value.clone();
 
     for _ in 0..cant {
@@ -131,13 +131,13 @@ fn add_zeros_left_value(number_value: &Vec<u64>, cant: usize) -> Vec<u64> {
     l
 }
 
-pub fn add_zeros_right_value(number_value: &Vec<u64>, cant: usize) -> Vec<u64> {
+pub fn add_zeros_right_value(number_value: &Vec<u128>, cant: usize) -> Vec<u128> {
     let l = vec![0; cant];
 
     [l, number_value.clone()].concat()
 }
 
-pub fn equal_zeros_left_value(x: &Vec<u64>, y: &Vec<u64>) -> (Vec<u64>, Vec<u64>) {
+pub fn equal_zeros_left_value(x: &Vec<u128>, y: &Vec<u128>) -> (Vec<u128>, Vec<u128>) {
     let lx = add_zeros_left_value(x, x.len().max(y.len()) - x.len());
     let ly = add_zeros_left_value(y, x.len().max(y.len()) - y.len());
 

@@ -14,7 +14,7 @@ mod trigonometry;
 pub struct BigNum {
     pub precision: usize,
     pub ind_base10: usize,
-    base10: u64,
+    base10: u128,
 }
 
 impl BigNum {
@@ -24,7 +24,7 @@ impl BigNum {
         BigNum {
             precision,
             ind_base10,
-            base10: 10_u64.pow(ind_base10.try_into().unwrap()),
+            base10: 10_u128.pow(ind_base10.try_into().unwrap()),
         }
     }
 
@@ -40,7 +40,7 @@ impl BigNum {
     }
 
     fn valid_assign(precision: usize, ind_base10: usize) {
-        if ind_base10 > 9 {
+        if ind_base10 > 17 {
             eprint!("Problem ind_base10 not supported: ind_base10 must be less than 9");
             process::exit(1);
         }
@@ -168,7 +168,7 @@ impl BigNum {
 
 pub struct BigInt {
     pub ind_base10: usize,
-    base10: u64,
+    base10: u128,
 }
 
 impl BigInt {
@@ -177,7 +177,7 @@ impl BigInt {
 
         BigInt {
             ind_base10,
-            base10: 10_u64.pow(ind_base10.try_into().unwrap()),
+            base10: 10_u128.pow(ind_base10.try_into().unwrap()),
         }
     }
 
@@ -188,10 +188,10 @@ impl BigInt {
 
 #[derive(Debug)]
 pub struct Number {
-    number_value: Vec<u64>,
+    number_value: Vec<u128>,
     pub precision: usize,
     pub ind_base10: usize,
-    pub base10: u64,
+    pub base10: u128,
     pub positive: bool,
     pub int: bool,
 }
@@ -201,7 +201,7 @@ impl Number {
         number: &String,
         precision: usize,
         ind_base10: usize,
-        base10: u64,
+        base10: u128,
         positive: bool,
         int: bool,
     ) -> Number {
@@ -211,7 +211,7 @@ impl Number {
             eliminate_zeros_right(&number.1),
         );
 
-        let number_value: Vec<u64> = eliminate_zeros_left_value(
+        let number_value: Vec<u128> = eliminate_zeros_left_value(
             &create_number_value(&number, precision, ind_base10),
             precision,
         );
@@ -373,14 +373,14 @@ impl Number {
     }
 
     fn new_priv(
-        number: &Vec<u64>,
+        number: &Vec<u128>,
         precision: usize,
         ind_base10: usize,
-        base10: u64,
+        base10: u128,
         positive: bool,
         int: bool,
     ) -> Number {
-        let number_value: Vec<u64> = eliminate_zeros_left_value(number, precision);
+        let number_value: Vec<u128> = eliminate_zeros_left_value(number, precision);
 
         let positive = if check_zero(&number_value) {
             true
@@ -653,7 +653,7 @@ mod tests {
 
     #[test]
     fn sin_cos() {
-        let big = BigNum::new(6, 9);
+        let big = BigNum::new(6, 17);
 
         let a = big.num(&"0.3".to_string(), true);
         let x = 0.3_f64.sin();
@@ -668,7 +668,7 @@ mod tests {
 
     #[test]
     fn asin_atan() {
-        let big = BigNum::new(6, 9);
+        let big = BigNum::new(6, 17);
 
         let a = big.num(&"0.31".to_string(), true);
         let x = 0.31_f64.asin();
@@ -683,7 +683,7 @@ mod tests {
 
     #[test]
     fn pi_e() {
-        let big = BigNum::new(6, 9);
+        let big = BigNum::new(6, 17);
 
         let a = big.pi();
 
@@ -696,7 +696,7 @@ mod tests {
 
     #[test]
     fn log() {
-        let big = BigNum::new(6, 9);
+        let big = BigNum::new(6, 17);
 
         let a = big.num(&String::from("2.23"), true);
 
@@ -723,7 +723,7 @@ mod tests {
 
     #[test]
     fn int() {
-        let big = BigInt::new(9);
+        let big = BigInt::new(17);
 
         let a = big.int(&"1".to_string(), true);
         let b = big.int(&"2".to_string(), true);
