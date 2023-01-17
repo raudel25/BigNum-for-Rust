@@ -84,7 +84,7 @@ fn simple_multiplication(x: &Vec<u128>, y: u128, base10: u128) -> Vec<u128> {
 }
 
 pub fn karatsuba_algorithm(x: &Vec<u128>, y: &Vec<u128>, base10: u128) -> Vec<u128> {
-    let tuple = super::aux_operations::equal_zeros_left_value(&x, &y);
+    let tuple = super::aux_operations::equal_zeros_left_value(x, y);
     let x = tuple.0;
     let y = tuple.1;
 
@@ -120,7 +120,7 @@ pub fn division_algorithm_d(
     let tuple = if x.len() >= y.len() {
         normalize(&x, &y, base10)?
     } else {
-        let tuple_aux = super::aux_operations::equal_zeros_left_value(&x, &y);
+        let tuple_aux = super::aux_operations::equal_zeros_left_value(x, y);
         normalize(&tuple_aux.0, &tuple_aux.1, base10)?
     };
     let x = tuple.0;

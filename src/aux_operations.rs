@@ -22,7 +22,7 @@ pub fn check_zero(number_value: &Vec<u128>) -> bool {
 }
 
 pub fn create_number_value(
-    number: &(String, String),
+    number: (String, String),
     precision: usize,
     ind_base10: usize,
 ) -> Vec<u128> {
@@ -58,11 +58,11 @@ pub fn create_number_value(
 }
 
 pub fn add_zeros_left(s: &String, cant: usize) -> String {
-    format!("{}{}", &create_zeros(cant), s)
+    format!("{}{}", create_zeros(cant), s)
 }
 
 fn add_zeros_right(s: &String, cant: usize) -> String {
-    format!("{}{}", s, &create_zeros(cant))
+    format!("{}{}", s, create_zeros(cant))
 }
 fn create_zeros(cant: usize) -> String {
     let mut s = String::new();
@@ -74,7 +74,7 @@ fn create_zeros(cant: usize) -> String {
     s
 }
 
-pub fn eliminate_zeros_left(s: &String) -> String {
+pub fn eliminate_zeros_left(s: String) -> String {
     let mut ind = 0;
     let mut find = false;
 
@@ -93,10 +93,10 @@ pub fn eliminate_zeros_left(s: &String) -> String {
     s[ind..s.len()].to_string()
 }
 
-pub fn eliminate_zeros_right(s: &String) -> String {
+pub fn eliminate_zeros_right(s: String) -> String {
     let s: String = s.chars().rev().collect();
 
-    eliminate_zeros_left(&s).chars().rev().collect()
+    eliminate_zeros_left(s).chars().rev().collect()
 }
 
 pub fn eliminate_zeros_left_value(number_value: &Vec<u128>, precision: usize) -> Vec<u128> {
@@ -107,7 +107,7 @@ pub fn eliminate_zeros_left_value(number_value: &Vec<u128>, precision: usize) ->
         if number_value[i] != 0 {
             act = true;
         }
-        //reivsar
+
         if i == precision {
             act = true;
         }

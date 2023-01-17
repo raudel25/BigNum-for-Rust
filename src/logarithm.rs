@@ -36,17 +36,16 @@ pub fn log_method(
     number1: Number,
     number0: Number,
 ) -> Number {
-    let y = y.clone();
     let mut pow_value = number1.clone();
     let mut index = number1.clone();
 
-    if y == number1 {
+    if *y == number1 {
         return number0;
     }
 
-    while pow_value <= y {
+    while pow_value <= *y {
         pow_value *= x.clone();
-        if pow_value == y {
+        if pow_value == *y {
             return index;
         }
 

@@ -42,24 +42,23 @@ pub fn approximate_integer(
     number10: Number,
     number1: Number,
 ) -> (Number, bool) {
-    let x = x.clone();
     let mut value = number10.clone();
-    while value < x {
+    while value < *x {
         value *= number10.clone();
     }
 
-    if value > x {
+    if value > *x {
         value = value / number10;
     }
 
     let mut pow_value = pow_numbers(&value, y, number1.clone());
 
-    while pow_value < x {
+    while pow_value < *x {
         value += number1.clone();
         pow_value = pow_numbers(&value, y, number1.clone());
     }
 
-    if pow_value == x {
+    if pow_value == *x {
         (value, true)
     } else {
         (value - number1, false)

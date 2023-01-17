@@ -344,12 +344,12 @@ impl Number {
     ) -> Number {
         let number = int_and_decimal(number);
         let number = (
-            eliminate_zeros_left(&number.0),
-            eliminate_zeros_right(&number.1),
+            eliminate_zeros_left(number.0),
+            eliminate_zeros_right(number.1),
         );
 
         let number_value: Vec<u128> = eliminate_zeros_left_value(
-            &create_number_value(&number, precision, ind_base10),
+            &create_number_value(number, precision, ind_base10),
             precision,
         );
 
@@ -562,8 +562,8 @@ impl Number {
             );
         }
 
-        part_decimal = eliminate_zeros_right(&part_decimal);
-        part_int = eliminate_zeros_left(&part_int);
+        part_decimal = eliminate_zeros_right(part_decimal);
+        part_int = eliminate_zeros_left(part_int);
 
         format!("{}{}.{}", sign_str, part_int, part_decimal)
     }
