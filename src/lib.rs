@@ -207,8 +207,10 @@ impl BigNum {
         if tuple.1 != 0 {
             x *= self.pow_int(&number10, ind - tuple.1 % ind);
         }
-        // if parity and not x >= self.number0():
-        //     raise Exception("Operacion Invalida (el resultado no es real)")
+        if parity && !(x >= self.number0()) {
+            eprintln!("Problem in operation sqrt: the result is not real");
+            process::exit(1);
+        }
 
         let mut result =
             pow_sqrt::algorithm_sqrt(&x, ind, &number_ind, 50, number10.clone(), self.number1());
@@ -234,7 +236,10 @@ impl BigNum {
         let part: Vec<&str> = str_num.split('.').collect();
 
         let denominator = 10_usize.pow(part[1].len().try_into().unwrap());
-        let numerator = (part[0].to_string() + part[1]).parse().unwrap();
+        let numerator = (part[0].to_string() + part[1]).parse().unwrap_or_else(|_| {
+            eprintln!("Problem in operation pow: the exponent is not supported");
+            process::exit(1);
+        });
 
         let mut rets = 1;
         let mut x1 = numerator;
