@@ -9,6 +9,7 @@ use std::process;
 mod aux_operations;
 mod basic_operations;
 mod logarithm;
+mod pow_sqrt;
 mod trigonometry;
 
 pub struct BigNum {
@@ -163,6 +164,95 @@ impl BigNum {
 
     pub fn log(&self, base: &Number, x: &Number) -> Number {
         logarithm::log_method(base, x, 150, self.number1(), self.number0())
+    }
+
+    pub fn pow_int(&self, x: &Number, ind: usize) -> Number {
+        pow_sqrt::pow_numbers(x, ind, self.number1())
+    }
+
+    pub fn sqrt(&self, x: &Number, ind: usize) -> Number {
+        let number_ind = Number::new(
+            &ind.to_string(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            true,
+            false,
+        );
+        let number10 = Number::new_priv(
+            &[vec![0; self.precision], vec![10]].concat(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            true,
+            false,
+        );
+
+        let x = x.clone();
+
+        if ind == 1 {
+            return x.clone();
+        }
+        if x == self.number0() {
+            return self.number0();
+        }
+
+        let parity: bool = (ind & 1) == 0;
+        let positive: bool = parity || x >= self.number0();
+
+        let mut x = if x >= self.number0() { x } else { -x };
+
+        let tuple = pow_sqrt::scalate_one(&x, number10.clone(), self.number1());
+        x = tuple.0;
+        if tuple.1 != 0 {
+            x *= self.pow_int(&number10, ind - tuple.1 % ind);
+        }
+        // if parity and not x >= self.number0():
+        //     raise Exception("Operacion Invalida (el resultado no es real)")
+
+        let mut result =
+            pow_sqrt::algorithm_sqrt(&x, ind, &number_ind, 50, number10.clone(), self.number1());
+
+        if tuple.1 != 0 {
+            result /= self.pow_int(&number10, (tuple.1 + ind - tuple.1 % ind) / ind);
+        }
+
+        if !positive {
+            result = -result
+        }
+
+        result
+    }
+
+    pub fn pow(&self, x: &Number, ind: &Number) -> Number {
+        let ind = ind.clone();
+        if ind == self.number0() {
+            return self.number1();
+        }
+
+        let str_num = ind.abs().to_string();
+        let part: Vec<&str> = str_num.split('.').collect();
+
+        let denominator = 10_usize.pow(part[1].len().try_into().unwrap());
+        let numerator = (part[0].to_string() + part[1]).parse().unwrap();
+
+        let mut rets = 1;
+        let mut x1 = numerator;
+        let mut y1 = denominator;
+        while rets != 0 {
+            rets = x1 % y1;
+            x1 = y1;
+            y1 = rets;
+        }
+
+        let result = self.sqrt(x, denominator / x1);
+        let result = self.pow_int(&result, numerator / x1);
+
+        if ind >= self.number0() {
+            result
+        } else {
+            self.number1() / result
+        }
     }
 }
 
@@ -742,5 +832,49 @@ mod tests {
         let c = big.int(&"10".to_string(), true);
 
         assert_eq!(c % b, a);
+    }
+
+    #[test]
+    fn sqrt() {
+        let big = BigNum::new(6, 17);
+
+        let a = big.num(&"0.25".to_string(), true);
+        let b = big.num(&"0.5".to_string(), true);
+        let c = big.num(&"2".to_string(), true);
+        let d = big.num(&"0.3".to_string(), true);
+
+        assert_eq!(
+            big.sqrt(&c, 2).to_string()[..10],
+            2_f64.sqrt().to_string()[..10]
+        );
+        assert_eq!(big.sqrt(&a, 2), b);
+
+        assert_eq!(
+            big.sqrt(&d, 2).to_string()[..10],
+            0.3_f64.sqrt().to_string()[..10]
+        );
+    }
+
+    #[test]
+    fn pow() {
+        let big = BigNum::new(6, 17);
+
+        let a = big.num(&"0.25".to_string(), true);
+        let b = big.num(&"0.5".to_string(), true);
+        let c = big.num(&"2".to_string(), true);
+
+        assert_eq!(big.pow(&a, &b), b);
+
+        assert_eq!(
+            big.pow(&c, &b).to_string()[..10],
+            2_f64.sqrt().to_string()[..10]
+        );
+
+        let b = big.num(&"0.5".to_string(), false);
+
+        assert_eq!(
+            big.pow(&c, &b).to_string()[..10],
+            (1.0 / 2_f64.sqrt()).to_string()[..10]
+        )
     }
 }
