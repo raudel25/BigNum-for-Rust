@@ -1,4 +1,4 @@
-pub fn int_and_decimal(number: &String) -> (String, String) {
+pub fn int_and_decimal(number: &str) -> (String, String) {
     let part: Vec<&str> = number.split(".").collect();
 
     (

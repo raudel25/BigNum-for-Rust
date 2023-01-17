@@ -29,13 +29,24 @@ impl BigNum {
         }
     }
 
-    pub fn num(&self, number: &String, positive: bool) -> Number {
+    pub fn num(&self, number: &str, positive: bool) -> Number {
         Number::new(
             number,
             self.precision,
             self.ind_base10,
             self.base10,
             positive,
+            false,
+        )
+    }
+
+    pub fn num_sytem(&self, number: f64) -> Number {
+        Number::new(
+            &number.abs().to_string(),
+            self.precision,
+            self.ind_base10,
+            self.base10,
+            number >= 0.0,
             false,
         )
     }
@@ -276,8 +287,38 @@ impl BigInt {
         }
     }
 
-    pub fn int(&self, number: &String, positive: bool) -> Number {
+    pub fn int(&self, number: &str, positive: bool) -> Number {
         Number::new(number, 1, self.ind_base10, self.base10, positive, true)
+    }
+
+    pub fn int_sytem(&self, number: isize) -> Number {
+        Number::new(
+            &number.abs().to_string(),
+            1,
+            self.ind_base10,
+            self.base10,
+            number >= 0,
+            true,
+        )
+    }
+
+    pub fn number0(&self) -> Number {
+        Number::new_priv(&vec![0; 2], 1, self.ind_base10, self.base10, true, true)
+    }
+
+    pub fn number1(&self) -> Number {
+        Number::new_priv(
+            &[vec![0; 1], vec![1]].concat(),
+            1,
+            self.ind_base10,
+            self.base10,
+            true,
+            true,
+        )
+    }
+
+    fn pow_int(&self, x: &Number, ind: usize) -> Number {
+        pow_sqrt::pow_numbers(x, ind, self.number1())
     }
 }
 
@@ -293,7 +334,7 @@ pub struct Number {
 
 impl Number {
     fn new(
-        number: &String,
+        number: &str,
         precision: usize,
         ind_base10: usize,
         base10: u128,
@@ -864,7 +905,7 @@ mod tests {
     fn pow() {
         let big = BigNum::new(6, 17);
 
-        let a = big.num(&"0.25".to_string(), true);
+        let a = big.num(&"0.25", true);
         let b = big.num(&"0.5".to_string(), true);
         let c = big.num(&"2".to_string(), true);
 
@@ -881,5 +922,15 @@ mod tests {
             big.pow(&c, &b).to_string()[..10],
             (1.0 / 2_f64.sqrt()).to_string()[..10]
         )
+    }
+
+    #[test]
+    fn pow_for_int() {
+        let big = BigInt::new(17);
+
+        let a = big.int_sytem(3);
+        let b = big.int_sytem(81);
+
+        assert_eq!(big.pow_int(&a, 4), b);
     }
 }
